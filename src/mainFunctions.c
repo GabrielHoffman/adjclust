@@ -263,8 +263,8 @@ double* distance_C(int mini, int maxi, int minj, int maxj, double *rcCumRight, d
 SEXP cWardHeaps(SEXP RrcCumRight, SEXP RrcCumLeft, SEXP Rh, SEXP Rp, SEXP RchainedL, SEXP Rpositions, SEXP Rdistances, SEXP RlHeap, SEXP Rmerge, SEXP Rgains, SEXP RtraceW){
 
   int *h, *p, *positions, *lHeap, *merge, *neiL, *neiR;
-  int posMin, neineiL, neineiR;
-  double *rcCumRight, *rcCumLeft, *distances, *chainedL, *gains, *traceW, *d1, *d2, *dLast, newDR, newDL, sumSdiag, snew, nii, njj, clMin_11, clMin_22;
+  int posMin, neineiL, neineiR, k;
+  double *rcCumRight, *rcCumLeft, *distances, *chainedL, *gains, *traceW, *d1, *d2, *dLast, newDR, newDL, sumSdiag, snew, nii, njj, clMin_11, clMin_12, clMin_21, clMin_22;
   int jj, step, stepInv;
 
   Rpositions = PROTECT(coerceVector(Rpositions, INTSXP));
