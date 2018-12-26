@@ -24,6 +24,9 @@ NULL
 #' @param h band width. It is assumed that the similarity between two items is 0
 #'   when these items are at a distance of more than band width h. Default value
 #'   is \code{ncol(mat)-1}
+#' @param checkPosDef A boolean value indicating whether the positive definiteness
+#'   of the similarity matrix should be checked a priori. Defaults to \code{TRUE}
+#' 
 #'   
 #' @return An object of class \code{\link{chac}} which describes the tree 
 #' produced by the clustering process. The object a list with the same elements 
@@ -76,88 +79,88 @@ NULL
 #' @importFrom Matrix isSymmetric
 
 adjClust <- function(mat, type = c("similarity", "dissimilarity"), 
-                     h = ncol(mat) - 1) {
+                     h = ncol(mat) - 1, checkPosDef = TRUE) {
   UseMethod("adjClust")
 }
 
 #' @export
 adjClust.matrix <- function(mat, type = c("similarity", "dissimilarity"), 
-                            h = ncol(mat) - 1) {
+                            h = ncol(mat) - 1, checkPosDef = TRUE) {
   if (!is.numeric(mat))
     stop("Input matrix is not numeric")
   if (!(isSymmetric(mat)))
     stop("Input matrix is not symmetric")
-  res <- run.adjclust(mat, type = type, h = h)
+  res <- run.adjclust(mat, type = type, h = h, checkPosDef = checkPosDef)
   return(res)
 }
 
 #' @export
 adjClust.Matrix <- function(mat, type = c("similarity", "dissimilarity"), 
-                            h = ncol(mat) - 1) {
+                            h = ncol(mat) - 1, checkPosDef = TRUE) {
   if (!(isSymmetric(mat)))
     stop("Input matrix is not symmetric")
-  res <- run.adjclust(mat, type = type, h = h)
+  res <- run.adjclust(mat, type = type, h = h, checkPosDef = checkPosDef)
   return(res)
 }
 
 #' @export
 adjClust.dgCMatrix <- function(mat, type = c("similarity", "dissimilarity"), 
-                            h = ncol(mat) - 1) {
+                            h = ncol(mat) - 1, checkPosDef = TRUE) {
   type <- match.arg(type)
   if (type == "dissimilarity")
     stop("'type' can only be 'similarity' with sparse Matrix inputs")
-  res <- run.adjclust(mat, type = type, h = h)
+  res <- run.adjclust(mat, type = type, h = h, checkPosDef = checkPosDef)
   return(res)
 }
 
 #' @export
 adjClust.dsCMatrix <- function(mat, type = c("similarity", "dissimilarity"), 
-                               h = ncol(mat) - 1) {
+                               h = ncol(mat) - 1, checkPosDef = TRUE) {
   type <- match.arg(type)
   if (!(isSymmetric(mat)))
     stop("Input matrix is not symmetric")
   if (type == "dissimilarity")
     stop("'type' can only be 'similarity' with sparse Matrix inputs")
-  res <- run.adjclust(mat, type = type, h = h)
+  res <- run.adjclust(mat, type = type, h = h, checkPosDef = checkPosDef)
   return(res)
 }
 
 #' @export
 adjClust.dgeMatrix <- function(mat, type = c("similarity", "dissimilarity"), 
-                               h = ncol(mat) - 1) {
+                               h = ncol(mat) - 1, checkPosDef = TRUE) {
   type <- match.arg(type)
   if (!(isSymmetric(mat)))
     stop("Input matrix is not symmetric")
   if (type == "dissimilarity")
     stop("'type' can only be 'similarity' with sparse Matrix inputs")
-  res <- run.adjclust(mat, type = type, h = h)
+  res <- run.adjclust(mat, type = type, h = h, checkPosDef = checkPosDef)
   return(res)
 }
 
 #' @export
 adjClust.dgTMatrix <- function(mat, type = c("similarity", "dissimilarity"), 
-                               h = ncol(mat) - 1) {
+                               h = ncol(mat) - 1, checkPosDef = TRUE) {
   type <- match.arg(type)
   if (!(isSymmetric(mat)))
     stop("Input matrix is not symmetric")
   if (type == "dissimilarity")
     stop("'type' can only be 'similarity' with sparse Matrix inputs")
-  res <- run.adjclust(mat, type = type, h = h)
+  res <- run.adjclust(mat, type = type, h = h, checkPosDef = checkPosDef)
   return(res)
 }
 
 #' @export
 adjClust.dist <- function(mat, type = c("similarity", "dissimilarity"), 
-                          h = ncol(mat) - 1) {
+                          h = ncol(mat) - 1, checkPosDef = TRUE) {
   type <- match.arg(type)
   if (type != "dissimilarity")
     message("Note: input class is 'dist' so 'type' is supposed to be 'dissimilarity'")
   mat <- as.matrix(mat)
-  res <- adjClust.matrix(mat, type = "dissimilarity", h = h)
+  res <- adjClust.matrix(mat, type = "dissimilarity", h = h, checkPosDef = checkPosDef)
   return(res)
 }
 
-run.adjclust <- function(mat, type = c("similarity", "dissimilarity"), h) {
+run.adjclust <- function(mat, type = c("similarity", "dissimilarity"), h, checkPosDef = TRUE) {
   # sanity checks
   type <- match.arg(type)
   if (!(nrow(mat) == ncol(mat)))
@@ -181,12 +184,14 @@ run.adjclust <- function(mat, type = c("similarity", "dissimilarity"), h) {
   if (type == "dissimilarity") {
     mat <- 1 - 0.5*(mat^2)
   }
-  
-  res_cc <- checkCondition(mat)
-  if (is.numeric(res_cc)) {
-    message(paste("Note: modifying similarity to ensure positive heights...
-      added", res_cc, "to diagonal (merges will not be affected)"))
-    mat <- mat + diag(rep(res_cc, ncol(mat)))
+
+  if (checkPosDef) {
+    res_cc <- checkCondition(mat)
+    if (is.numeric(res_cc)) {
+      message(paste("Note: modifying similarity to ensure positive heights...
+        added", res_cc, "to diagonal (merges will not be affected)"))
+      mat <- mat + diag(rep(res_cc, ncol(mat)))
+    }
   }
   
   out_matL <- matL(mat, h)

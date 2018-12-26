@@ -1,3 +1,9 @@
+# Version 0.5.9 [2018-12-26]
+
+* added argument 'checkPosDef' to 'adjClust' in order to bypass a 
+  time-consuming check if desired. The default still corresponds to
+  performing the check.
+
 # Version 0.5.7 [2018-09-26]
 
 * Example Hi-C data now 10x smaller (subset of the original one). The package 
